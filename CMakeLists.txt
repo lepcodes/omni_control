@@ -10,7 +10,7 @@ project(omni_control)
 find_package(catkin REQUIRED COMPONENTS
   rospy
   std_msgs
-  message_generation # For Custom Message OdomVel.msg
+  message_generation # For Custom Message OmniVel.msg
 )
 
 ## System dependencies are found with CMake's conventions
@@ -49,7 +49,7 @@ find_package(catkin REQUIRED COMPONENTS
 ## Generate messages in the 'msg' folder
 add_message_files(
   FILES
-  OdomVel.msg
+  OmniVel.msg
 )
 
 ## Generate services in the 'srv' folder
