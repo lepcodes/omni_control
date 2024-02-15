@@ -1,21 +1,21 @@
-#!/usr/bin/env python
+#!/usr/bin/env python3
 
 import rospy
 import numpy as np
 from pynput import keyboard
 from std_msgs.msg import String
-from omni_control.msg import OmniVel
+from geometry_msgs.msg import Quaternion
 
 class KeyPublisher:
     def __init__(self):
-        self.publisher_ = rospy.Publisher('omni_vel', OmniVel, queue_size=10)
+        self.publisher_ = rospy.Publisher('omni_vel', Quaternion, queue_size=10)
         self.pressed_keys = set()
         self.vel_x = 0
         self.vel_y = 0
         self.vel_theta = 0
         self.listener = keyboard.Listener(on_press=self.on_press, on_release=self.on_release)
         self.listener.start()
-
+	
     def on_press(self, key):
         c = 0.1
         if key in {keyboard.Key.up, keyboard.Key.down, keyboard.Key.left, keyboard.Key.right}:
@@ -42,13 +42,15 @@ class KeyPublisher:
                           [np.sqrt(2)*np.cos(alpha),  np.sqrt(2)*np.sin(alpha),  (L+l)],
                           [np.sqrt(2)*np.cos(alpha),  np.sqrt(2)*np.sin(alpha), -(L+l)],
                           [np.sqrt(2)*np.sin(alpha), -np.sqrt(2)*np.cos(alpha),  (L+l)]])
-            B = np.array([self.vel_x, self.vel_y, self.vel_theta])
-            result = np.dot(A, B)
-            #result = np.clip(result, -255, 255)
-            result = result.tolist()
-
-            omniVel_msg = OmniVel()
-            omniVel_msg.wheelVel = result
+            linearVel = np.array([self.vel_x, self.vel_y, self.vel_theta])
+            wheelVel = np.dot(A, linearVel )
+            
+            omniVel_msg = Quaternion()
+            omniVel_msg.x = float(wheelVel[0])
+            omniVel_msg.w = float(wheelVel[1])
+            omniVel_msg.y = float(wheelVel[2])
+            omniVel_msg.z = float(wheelVel[3])
+            
             self.publisher_.publish(omniVel_msg)
 
     def on_release(self, key):

@@ -10,6 +10,7 @@ project(omni_control)
 find_package(catkin REQUIRED COMPONENTS
   rospy
   std_msgs
+  geometry_msgs
   message_generation # For Custom Message OmniVel.msg
 )
 
