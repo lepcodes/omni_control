@@ -13,28 +13,31 @@ void Velocidadmsg( const geometry_msgs::Quaternion& omni_vel){
   digitalWrite(LED_BUILTIN, !digitalRead(LED_BUILTIN));
   int wheel_1, wheel_2, wheel_3, wheel_4;
   wheel_1 = map(omni_vel.x,-10,10,128,255);
-  wheel_2 = map(omni_vel.w,-10,10,1  ,127);
-  wheel_3 = map(omni_vel.y,-10,10,128,255);
-  wheel_4 = map(omni_vel.z,-10,10,1  ,127);
-
-  //SET Motor 1 and Motor 3
-  digitalWrite(1,HIGH); //S2_1
-  digitalWrite(2,HIGH); //S2_2
+  wheel_2 = map(omni_vel.y,-10,10,1  ,127);
+  wheel_3 = map(omni_vel.z,-10,10,128,255);
+  wheel_4 = map(omni_vel.w,-10,10,1  ,127);
+    
+  //SET Motor 1 and Motor 3 Velocities
+  digitalWrite(1,HIGH); //Listening
+  digitalWrite(2,HIGH); //Listening
   
   SWSerial1.write(wheel_1); //Motor 1
   SWSerial2.write(wheel_3); //Motor 3
 
-  digitalWrite(1,LOW); //S2_1
-  digitalWrite(2,LOW); //S2_2
-  delay(1);
-  digitalWrite(1,HIGH); //S2_1
-  digitalWrite(2,HIGH); //S2_2
+  delayMicroseconds(50);//Time for
+  digitalWrite(1,LOW);  //processing
+  digitalWrite(2,LOW);  //command
   
-  //SET Motor 2 and Motor 4
+  //SET Motor 2 and Motor 4 Velocities
+  digitalWrite(1,HIGH); //Listening
+  digitalWrite(2,HIGH); //Listening
+  
   SWSerial1.write(wheel_2); //Motor 2
   SWSerial2.write(wheel_4); //Motor 4
-  digitalWrite(1,LOW); //S2_1
-  digitalWrite(2,LOW); //S2_2
+  
+  delayMicroseconds(50);//Time for
+  digitalWrite(1,LOW);  //processing
+  digitalWrite(2,LOW);  //command
 }
 
 ros::Subscriber<geometry_msgs::Quaternion> sub("omni_vel", &Velocidadmsg);

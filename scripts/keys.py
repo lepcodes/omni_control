@@ -47,9 +47,9 @@ class KeyPublisher:
             
             omniVel_msg = Quaternion()
             omniVel_msg.x = float(wheelVel[0])
-            omniVel_msg.w = float(wheelVel[1])
-            omniVel_msg.y = float(wheelVel[2])
-            omniVel_msg.z = float(wheelVel[3])
+            omniVel_msg.y = float(wheelVel[1])
+            omniVel_msg.z = float(wheelVel[2])
+            omniVel_msg.w = float(wheelVel[3])
             
             self.publisher_.publish(omniVel_msg)
 
