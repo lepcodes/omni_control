@@ -16,7 +16,15 @@ class KeyPublisher:
         self.listener = keyboard.Listener(on_press=self.on_press, on_release=self.on_release)
         self.listener.start()
 	
+	def timer_callback(self, event):
+        if not self.pressed_keys:
+            self.vel_x = 0
+            self.vel_y = 0
+            self.vel_theta = 0
+
     def on_press(self, key):
+	self.timer.shutdown()
+        self.timer = rospy.Timer(rospy.Duration(1), self.timer_callback, oneshot=True)
         c = 0.1
         if key in {keyboard.Key.up, keyboard.Key.down, keyboard.Key.left, keyboard.Key.right}:
             self.pressed_keys.add(key)
