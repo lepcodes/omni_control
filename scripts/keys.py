@@ -1,5 +1,4 @@
 #!/usr/bin/env python
-import time
 import rospy
 import numpy as np
 from pynput import keyboard
@@ -25,7 +24,7 @@ class KeyPublisher:
         self.publish_velocity()
 
     def on_press(self, key):
-        c = 0.1
+        c = 0.2
         if key in {keyboard.Key.up, keyboard.Key.down, keyboard.Key.left, keyboard.Key.right}:
             self.pressed_keys.add(key)
             if keyboard.Key.up in self.pressed_keys:
@@ -65,12 +64,11 @@ class KeyPublisher:
         
         omniVel_msg = Quaternion()
         omniVel_msg.x = float(wheelVel[0])
-        omniVel_msg.w = float(wheelVel[1])
-        omniVel_msg.y = float(wheelVel[2])
-        omniVel_msg.z = float(wheelVel[3])
+        omniVel_msg.y = float(wheelVel[1])
+        omniVel_msg.z = float(wheelVel[2])
+        omniVel_msg.w = float(wheelVel[3])
         
         self.publisher_.publish(omniVel_msg)
-        self.last_key_press_time = time.time()
 
 if __name__ == '__main__':
     rospy.init_node('key_publisher', anonymous=True)
