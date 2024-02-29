@@ -51,16 +51,16 @@ class KeyPublisher:
 
         # Omnidirectional Cinematics
         pi = np.pi
-        alpha = self.vel_theta + pi/4
+        alpha = 0 + pi/4
         L = 0.425/2
         l = 0.44/2
 
-        A = np.array([[np.sqrt(2)*np.sin(alpha), -np.sqrt(2)*np.cos(alpha), -(L+l)],
+        T = np.array([[np.sqrt(2)*np.sin(alpha), -np.sqrt(2)*np.cos(alpha), -(L+l)],
                       [np.sqrt(2)*np.cos(alpha),  np.sqrt(2)*np.sin(alpha),  (L+l)],
                       [np.sqrt(2)*np.cos(alpha),  np.sqrt(2)*np.sin(alpha), -(L+l)],
                       [np.sqrt(2)*np.sin(alpha), -np.sqrt(2)*np.cos(alpha),  (L+l)]])
         linearVel = np.array([self.vel_x, self.vel_y, self.vel_theta])
-        wheelVel = np.dot(A, linearVel )
+        wheelVel = np.dot(T, linearVel )
         
         omniVel_msg = Quaternion()
         omniVel_msg.x = float(wheelVel[0])
