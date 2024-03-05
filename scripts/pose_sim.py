@@ -1,37 +1,48 @@
-#!/usr/bin/env python
+#!/usr/bin/env python3
+import time
 import rospy
 import numpy as np
 from pynput import keyboard
 from std_msgs.msg import String
 from geometry_msgs.msg import Quaternion
 
-class KeyPublisher:
+class ControlNode:
     def __init__(self):
         self.publisher_ = rospy.Publisher('omni_vel', Quaternion, queue_size=10)
-        self.pos_x = 0
-        self.pos_y = 0
-        self.pos_thet = 0
-        self.vel_x = 0
-        self.vel_y = 0
-        self.vel_theta = 0
+        self.pd = np.array([2, 2, 0])
+        self.p = np.array([0, 0, 0])
+        self.pp = np.array([0, 0, 0])
 
-    def control():
-        pass
+        self.K = 1*np.array([[1, 0, 0],[0, 1, 0],[0, 0, 1]])
+        self.e = np.array([0, 0, 0])
+        self.eprev = np.array([0, 0, 0])
+        self.prevTime = time.time()
+        self.elapsedTime = 0
+        self.t = 0
 
-    def publish_velocity(self):
+    def control(self):
+        self.t = time.time()
+        self.elapsedTime = self.t - self.prevTime
+        
+        #  Error Calculation
+        self.e = self.pd - self.p
 
         # Omnidirectional Cinematics
         pi = np.pi
-        alpha = self.vel_theta + pi/4
+        alpha = self.p[2] + pi/4
         L = 0.425/2
         l = 0.44/2
-
-        A = np.array([[np.sqrt(2)*np.sin(alpha), -np.sqrt(2)*np.cos(alpha), -(L+l)],
+        T = np.array([[np.sqrt(2)*np.sin(alpha), -np.sqrt(2)*np.cos(alpha), -(L+l)],
                       [np.sqrt(2)*np.cos(alpha),  np.sqrt(2)*np.sin(alpha),  (L+l)],
                       [np.sqrt(2)*np.cos(alpha),  np.sqrt(2)*np.sin(alpha), -(L+l)],
                       [np.sqrt(2)*np.sin(alpha), -np.sqrt(2)*np.cos(alpha),  (L+l)]])
-        linearVel = np.array([self.vel_x, self.vel_y, self.vel_theta])
-        wheelVel = np.dot(A, linearVel )
+        
+        v = np.dot(self.K,self.e)
+        v = np.clip(v, -0.2, 0.2)
+        self.u = np.dot(T,v)/0.05
+
+    def publish_velocity(self):
+        wheelVel = self.u
         
         omniVel_msg = Quaternion()
         omniVel_msg.x = float(wheelVel[0])
@@ -42,12 +53,31 @@ class KeyPublisher:
         #Publishing Wheel Velocities        
         self.publisher_.publish(omniVel_msg)
 
+    def simulated_pose(self):
+        L = 0.425/2
+        l = 0.44/2
+        R = np.array([[np.cos(self.p[2]), -np.sin(self.p[2]), 0],
+                      [np.sin(self.p[2]),  np.cos(self.p[2]), 0],
+                      [                0,                  0, 1]])
+        T = np.array([[1, -1, -(L+l)],
+                      [1,  1,  (L+l)],
+                      [1,  1, -(L+l)],
+                      [1, -1,  (L+l)]])
+        T = np.linalg.pinv(T)
+        self.pp = np.dot(np.dot(R,T),self.u)*0.05
+        self.p = self.p + self.pp*self.elapsedTime
+        
+        print("Pose: "+str(self.p))
+        print("Vel:  "+str(self.pp))
+        self.prevTime = self.t
+
 if __name__ == '__main__':
-    rospy.init_node('key_publisher', anonymous=True)
-    key_publisher = KeyPublisher()
+    rospy.init_node('Control', anonymous=True)
+    control = ControlNode()
 
     rate = rospy.Rate(10)  # Adjust the rate as needed (e.g., 10 Hz)
     while not rospy.is_shutdown():
-        key_publisher.control_logic() 
-        key_publisher.publish_velocity()
+        control.control() 
+        control.publish_velocity()
+        control.simulated_pose()
         rate.sleep()
