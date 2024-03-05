@@ -1,9 +1,7 @@
-#!/usr/bin/env python3
+#!/usr/bin/env python
 import time
 import rospy
 import numpy as np
-from pynput import keyboard
-from std_msgs.msg import String
 from geometry_msgs.msg import Quaternion
 
 class ControlNode:
@@ -13,7 +11,7 @@ class ControlNode:
         self.p = np.array([0, 0, 0])
         self.pp = np.array([0, 0, 0])
 
-        self.K = 1*np.array([[1, 0, 0],[0, 1, 0],[0, 0, 1]])
+        self.K = 0.6*np.array([[1, 0, 0],[0, 1, 0],[0, 0, 1]])
         self.e = np.array([0, 0, 0])
         self.eprev = np.array([0, 0, 0])
         self.prevTime = time.time()
@@ -75,7 +73,7 @@ if __name__ == '__main__':
     rospy.init_node('Control', anonymous=True)
     control = ControlNode()
 
-    rate = rospy.Rate(10)  # Adjust the rate as needed (e.g., 10 Hz)
+    rate = rospy.Rate(5)  # Adjust the rate as needed (e.g., 10 Hz)
     while not rospy.is_shutdown():
         control.control() 
         control.publish_velocity()

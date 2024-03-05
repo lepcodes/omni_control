@@ -36,8 +36,8 @@ class KeyPublisher:
             if keyboard.Key.right in self.pressed_keys:
                 self.vel_y = self.vel_y + c
 
-            self.vel_x = np.clip(self.vel_x, -5, 5)
-            self.vel_y = np.clip(self.vel_y, -5, 5)
+            self.vel_x = np.clip(self.vel_x, -0.2, 0.2)
+            self.vel_y = np.clip(self.vel_y, -0.2, 0.2)
 
             self.publish_velocity()
 
@@ -60,7 +60,7 @@ class KeyPublisher:
                       [np.sqrt(2)*np.cos(alpha),  np.sqrt(2)*np.sin(alpha), -(L+l)],
                       [np.sqrt(2)*np.sin(alpha), -np.sqrt(2)*np.cos(alpha),  (L+l)]])
         linearVel = np.array([self.vel_x, self.vel_y, self.vel_theta])
-        wheelVel = np.dot(T, linearVel )
+        wheelVel = np.dot(T, linearVel )/0.05
         
         omniVel_msg = Quaternion()
         omniVel_msg.x = float(wheelVel[0])
