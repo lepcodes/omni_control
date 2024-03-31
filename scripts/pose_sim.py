@@ -1,19 +1,18 @@
-#!/usr/bin/env python3
+#!/usr/bin/env python
 import time
 import rospy
 import numpy as np
-from pynput import keyboard
-from std_msgs.msg import String
 from geometry_msgs.msg import Quaternion
 
 class ControlNode:
     def __init__(self):
         self.publisher_ = rospy.Publisher('omni_vel', Quaternion, queue_size=10)
-        self.pd = np.array([2, 2, 0])
+        self.pd_list = [np.array([1, 0, 0]), np.array([1, 1, 0]), np.array([0, 1, 0]), np.array([0, 0, 0])]
+        self.current_target_index = 0
         self.p = np.array([0, 0, 0])
         self.pp = np.array([0, 0, 0])
 
-        self.K = 1*np.array([[1, 0, 0],[0, 1, 0],[0, 0, 1]])
+        self.K = 0.6*np.array([[1, 0, 0],[0, 1, 0],[0, 0, 1]])
         self.e = np.array([0, 0, 0])
         self.eprev = np.array([0, 0, 0])
         self.prevTime = time.time()
@@ -24,9 +23,9 @@ class ControlNode:
         self.t = time.time()
         self.elapsedTime = self.t - self.prevTime
         
-        #  Error Calculation
-        self.e = self.pd - self.p
-
+        # Error Calculation
+        self.e = self.pd_list[self.current_target_index] - self.p
+        print(self.pd_list[self.current_target_index])
         # Omnidirectional Cinematics
         pi = np.pi
         alpha = self.p[2] + pi/4
@@ -71,13 +70,23 @@ class ControlNode:
         print("Vel:  "+str(self.pp))
         self.prevTime = self.t
 
+    def update_target_position(self):
+        # Check if reached the current target position
+        if np.linalg.norm(self.pd_list[self.current_target_index] - self.p) < 0.1:
+            # Move to the next target position
+            self.current_target_index = (self.current_target_index + 1)
+            if self.current_target_index == len(self.pd_list):
+                self.current_target_index = len(self.pd_list)-1
+
 if __name__ == '__main__':
     rospy.init_node('Control', anonymous=True)
     control = ControlNode()
 
-    rate = rospy.Rate(10)  # Adjust the rate as needed (e.g., 10 Hz)
+    rate = rospy.Rate(5)  # Adjust the rate as needed (e.g., 10 Hz)
     while not rospy.is_shutdown():
         control.control() 
         control.publish_velocity()
         control.simulated_pose()
+        control.update_target_position()
         rate.sleep()
+
