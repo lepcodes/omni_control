@@ -46,7 +46,6 @@ void setup()
 {
   SWSerial1.begin(38400);
   SWSerial2.begin(38400);
-  Serial.begin(9600);
   pinMode(LED_BUILTIN, OUTPUT);
   SabertoothTXPinSerial.begin(38400);
   pinMode(1,OUTPUT); //S2_1: when it's high ejecute the information and when it's low don't do anything.

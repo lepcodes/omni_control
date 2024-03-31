@@ -1,5 +1,9 @@
 # Omni_Control
 
+The `Omni_Control` package is designed to facilitate interaction with the `Name of Robot`. It uses the `Name of Drivers` drivers to manage and control the robot’s motors. Additionally, it uses Arduino as an interface between the computer and the motors.
+
+This package has been tested in `ROS Melodic` and `Noetic`.
+
 ## Installation
 
 To run this package use
@@ -7,24 +11,27 @@ To run this package use
     mkdir -p omni_ros_ws/src
     git clone https://github.com/Luispre99/omni_control.git
     cd ..
-    catkin_make
+    catkin build omni_control
 
 ## Development
 
-To modify the Arduino code or if you change the structure of the custom message, you have to install Arduino and the rosserial library
+You need to have this ros-packages
 
-Besides, you need to have this ros-packages
+    sudo apt-get install ros-$ROS_DISTRO-rosserial-python
+    sudo apt-get install ros-$ROS_DISTRO-rosserial-arduino
+    sudo apt-get install ros-$ROS_DISTRO-rosserial
 
-    sudo apt-get install ros-melodic-rosserial-python
-    sudo apt-get install ros-melodic-rosserial-arduino
-    sudo apt-get install ros-melodic-rosserial
+If you want to control the robot using joysticks you need to have the following packages installed
 
-Then run
-    
-    cd ~/omni_ros_ws/src/omni_control
-    rosrun rosserial_client make_libraries ~/Arduino/libraries omni_control
-    sudo cp -R ~/Arduino/libraries/ros_lib/omni_control ~/Arduino/libraries/Rosserial_Arduino_Library/src
+    sudo apt-get install ros-$ROS_DISTRO-joy
+    sudo apt-get install ros-$ROS_DISTRO-teleop-twist-joy
 
-To generate and move the header files from custom messages in this case OmniVel.h
+The SaberTooth drivers for the motors can be found [here](https://www.dimensionengineering.com/info/arduino) in case you want to modify the robot behaviour.
 
-Finally, install the SaberTooth libraries from [here]()
+## Running
+
+This package is prepared to control the robot using a ps3 controller by running the following launch file:
+
+    roslaunch omni_control joy_omni.launch
+
+If you are using other controller perhaps you need to create or modify the [config](/config/ps3-holonomic.config.yaml) file and adjust the drivers to detect the gamepad as `/dev/input/jsX`.
