@@ -23,10 +23,13 @@ class ControlNode:
         self.t = time.time()
         self.elapsedTime = self.t - self.prevTime
         
-        # Error Calculation
+        # Error Computation
+        
         self.e = self.pd_list[self.current_target_index] - self.p
         print(self.pd_list[self.current_target_index])
-        # Omnidirectional Cinematics
+
+        # Omnidirectional Kinematics
+
         pi = np.pi
         alpha = self.p[2] + pi/4
         L = 0.425/2
