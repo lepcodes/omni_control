@@ -1,14 +1,14 @@
 #!/usr/bin/env python3
-import time
 import rospy
 import numpy as np
+from tf.transformations import euler_from_quaternion
 from geometry_msgs.msg import Quaternion, Twist, PoseStamped
 
-class ControlNode:
+class TeleOpNode:
     def __init__(self):
         self.publisher = rospy.Publisher('omni_vel', Quaternion, queue_size=10)
-        self.subscriber = rospy.Subscriber('cmd_vel', Twist, self.callback_vel)
-        # self.subscriber2 = rospy.Subscriber('pose', PoseStamped,self.callback_pose)
+        self.subscriberJoy  = rospy.Subscriber('cmd_vel', Twist, self.callback_vel)
+        self.subscriberPose = rospy.Subscriber('posesim/pose', PoseStamped, self.callback_pose)
 
         self.v_x = 0
         self.v_y = 0
@@ -17,17 +17,9 @@ class ControlNode:
         self.p = np.array([0, 0, 0])
         self.pp = np.array([0, 0, 0])
 
-        self.prevTime = time.time()
-        self.elapsedTime = 0
-        self.t = 0
-
     def control(self):
-        # Time for Pose Estimation
-
-        self.t = time.time()
-        self.elapsedTime = self.t - self.prevTime
-
-        # Robot Pose
+        
+        # Robot Orientation
 
         theta = self.p[2]
         #theta = 0
@@ -46,54 +38,49 @@ class ControlNode:
         v = np.array([self.v_x, self.v_y, self.v_theta])
         self.u = np.dot(T,v)/0.05
 
+        # Publish Wheel Velocities
+
         self.publish_velocity(self.u)
-        self.simulated_pose()
 
     def callback_vel(self, data):
         
-        # Control Velocities
+        # Joystick Velocities
 
         self.v_x = data.linear.x
         self.v_y = data.linear.y
         self.v_theta = data.angular.z
 
-    def simulated_pose(self):
-        L = 0.425/2
-        l = 0.44/2
-        R = np.array([[np.cos(self.p[2]), -np.sin(self.p[2]), 0],
-                      [np.sin(self.p[2]),  np.cos(self.p[2]), 0],
-                      [                0,                  0, 1]])
-        T = np.array([[1, -1, -(L+l)],
-                      [1,  1,  (L+l)],
-                      [1,  1, -(L+l)],
-                      [1, -1,  (L+l)]])
-        T = np.linalg.pinv(T)
-        self.pp = np.dot(np.dot(R,T),self.u)*0.005
-        self.p = self.p + self.pp*self.elapsedTime
-        self.prevTime = self.t
+    def callback_pose(self, data):
+        
+        # Simulated Pose
 
-        self.x = self.p[0]
-        self.y = self.p[1]
-        self.theta = self.p[2]
-        print(self.p)
+        q = (data.pose.orientation.x,
+             data.pose.orientation.y,
+             data.pose.orientation.z,
+             data.pose.orientation.w)
+        
+        (_,_,yaw) = euler_from_quaternion(q)
+
+        self.p = np.array([data.pose.position.x,data.pose.position.y,yaw]) 
 
     def publish_velocity(self,wheelVel):
         
+        #Publishing Wheel Velocities
+
         omniVel_msg = Quaternion()
         omniVel_msg.x = float(wheelVel[0])
         omniVel_msg.y = float(wheelVel[1])
         omniVel_msg.z = float(wheelVel[2])
         omniVel_msg.w = float(wheelVel[3])
 
-        #Publishing Wheel Velocities        
         self.publisher.publish(omniVel_msg)
 
 if __name__ == '__main__':
     rospy.init_node('Omni_Teleop', anonymous=True)
-    control = ControlNode()
+    teleop = TeleOpNode()
 
-    rate = rospy.Rate(10)  # Adjust the rate as needed (e.g., 10 Hz)
+    rate = rospy.Rate(10)
     while not rospy.is_shutdown():
-        control.control() 
+        teleop.control() 
         rate.sleep()
 
