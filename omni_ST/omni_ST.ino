@@ -11,11 +11,15 @@ ros::NodeHandle  nh;
 
 void Velocidadmsg( const geometry_msgs::Quaternion& omni_vel){
   digitalWrite(LED_BUILTIN, !digitalRead(LED_BUILTIN));
-  int wheel_1, wheel_2, wheel_3, wheel_4;
-  wheel_1 = map(omni_vel.x,-8,8,128,255);
-  wheel_2 = map(omni_vel.y,-8,8,1  ,127);
-  wheel_3 = map(omni_vel.z,-8,8,128,255);
-  wheel_4 = map(omni_vel.w,-8,8,1  ,127);
+  int wheel_1 = (int)omni_vel.x;
+  int wheel_2 = (int)omni_vel.y;
+  int wheel_3 = (int)omni_vel.z;
+  int wheel_4 = (int)omni_vel.w;
+  int bound = 45;
+  wheel_1 = map(wheel_1,-bound,bound,128,255);
+  wheel_2 = map(wheel_2,-bound,bound,1  ,127);
+  wheel_3 = map(wheel_3,-bound,bound,128,255);
+  wheel_4 = map(wheel_4,-bound,bound,1  ,127);
     
   //SET Motor 1 and Motor 3 Velocities
   digitalWrite(1,HIGH); //Listening

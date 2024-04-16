@@ -1,4 +1,4 @@
-#!/usr/bin/env python3
+#!/usr/bin/env python
 import time
 import rospy
 import numpy as np
@@ -68,7 +68,7 @@ class ControlNode:
                       [1,  1, -(L+l)],
                       [1, -1,  (L+l)]])
         T = np.linalg.pinv(T)
-        self.pp = np.dot(np.dot(R,T),self.u)*0.005
+        self.pp = np.dot(np.dot(R,T),self.u)*0.004
         self.p = self.p + self.pp*self.elapsedTime
         self.prevTime = self.t
 
@@ -80,10 +80,10 @@ class ControlNode:
     def publish_velocity(self,wheelVel):
         
         omniVel_msg = Quaternion()
-        omniVel_msg.x = float(wheelVel[0])
-        omniVel_msg.y = float(wheelVel[1])
-        omniVel_msg.z = float(wheelVel[2])
-        omniVel_msg.w = float(wheelVel[3])
+        omniVel_msg.x = np.int(wheelVel[0])
+        omniVel_msg.y = np.int(wheelVel[1])
+        omniVel_msg.z = np.int(wheelVel[2])
+        omniVel_msg.w = np.int(wheelVel[3])
 
         #Publishing Wheel Velocities        
         self.publisher.publish(omniVel_msg)
