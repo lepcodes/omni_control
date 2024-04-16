@@ -2,7 +2,7 @@
   <!-- ROS Params -->
   <arg name="joy_config" default="ps3-holonomic" />
   <arg name="joy_dev" default="/dev/input/js0" />
-  <arg name="joy_event" default="/dev/input/event11" /> <!-- check event using: udevadm monitor -->
+  <arg name="joy_event" default="/dev/input/event6" /> <!-- check event using: udevadm monitor -->
   <arg name="config_filepath" default="$(find omni_control)/config/$(arg joy_config).config.yaml" />
   <arg name="arduino_port" default="/dev/ttyACM0" />
 
@@ -20,7 +20,11 @@
   </node>
 
   <!-- Twist to OmniVel Node -->
-  <node pkg="omni_control" type="teleop.py" name="omni_teleop" output="screen">
+  <node pkg="omni_control" type="omni_teleop.py" name="omni_teleop" output="screen">
+  </node>
+
+  <!-- Pose Simulation Node -->
+  <node pkg="omni_control" type="omni_posesim.py" name="Pose_Sim" output="screen">
   </node>
 
   <!-- rosserial Node -->

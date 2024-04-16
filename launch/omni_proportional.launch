@@ -1,0 +1,17 @@
+<launch>
+  <!-- ROS Params -->
+    <arg name="arduino_port" default="/dev/ttyACM0" />
+
+  <!-- Proportional Control Node -->
+  <node pkg="omni_control" type="omni_p_control.py" name="P_Control" output="screen">
+  </node>
+
+  <!-- Pose Simulation Node -->
+  <node pkg="omni_control" type="omni_posesim.py" name="Pose_Sim" output="screen">
+  </node>
+
+  <!-- rosserial Node -->
+  <node pkg="rosserial_python" type="serial_node.py" name="serial_node" output="screen">
+    <param name="port" value="$(arg arduino_port)" />
+  </node>
+</launch>
