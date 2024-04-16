@@ -1,5 +1,4 @@
-#!/usr/bin/env python3
-import time
+#!/usr/bin/env python
 import rospy
 import numpy as np
 from tf.transformations import euler_from_quaternion
@@ -15,7 +14,7 @@ class ControlNode:
         self.p = np.array([0, 0, 0])
         self.pp = np.array([0, 0, 0])
 
-        self.K = 0.6*np.array([[1, 0, 0],[0, 1, 0],[0, 0, 1]])
+        self.K = 2*np.array([[1, 0, 0],[0, 1, 0],[0, 0, 1]])
         self.e = np.array([0, 0, 0])
 
     def control(self):      
@@ -36,7 +35,7 @@ class ControlNode:
                       [np.sqrt(2)*np.sin(alpha), -np.sqrt(2)*np.cos(alpha),  (L+l)]])
         
         v = np.dot(self.K,self.e)
-        v = np.clip(v, -1, 1)
+        v = np.clip(v, -2, 2)
         self.u = np.dot(T,v)/0.05
 
         # Publish Wheel Velocities
@@ -67,10 +66,10 @@ class ControlNode:
         wheelVel = self.u
         
         omniVel_msg = Quaternion()
-        omniVel_msg.x = float(wheelVel[0])
-        omniVel_msg.y = float(wheelVel[1])
-        omniVel_msg.z = float(wheelVel[2])
-        omniVel_msg.w = float(wheelVel[3])
+        omniVel_msg.x = np.int(wheelVel[0])
+        omniVel_msg.y = np.int(wheelVel[1])
+        omniVel_msg.z = np.int(wheelVel[2])
+        omniVel_msg.w = np.int(wheelVel[3])
 
         #Publishing Wheel Velocities        
         self.publisher.publish(omniVel_msg)

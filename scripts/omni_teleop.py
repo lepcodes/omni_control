@@ -1,4 +1,4 @@
-#!/usr/bin/env python3
+#!/usr/bin/env python
 import rospy
 import numpy as np
 from tf.transformations import euler_from_quaternion
@@ -21,8 +21,8 @@ class TeleOpNode:
         
         # Robot Orientation
 
-        theta = self.p[2]
-        #theta = 0
+        #theta = self.p[2]
+        theta = 0
 
         # Robot Inverse Kinematics
 
@@ -68,10 +68,10 @@ class TeleOpNode:
         #Publishing Wheel Velocities
 
         omniVel_msg = Quaternion()
-        omniVel_msg.x = float(wheelVel[0])
-        omniVel_msg.y = float(wheelVel[1])
-        omniVel_msg.z = float(wheelVel[2])
-        omniVel_msg.w = float(wheelVel[3])
+        omniVel_msg.x = np.int(wheelVel[0])
+        omniVel_msg.y = np.int(wheelVel[1])
+        omniVel_msg.z = np.int(wheelVel[2])
+        omniVel_msg.w = np.int(wheelVel[3])
 
         self.publisher.publish(omniVel_msg)
 
