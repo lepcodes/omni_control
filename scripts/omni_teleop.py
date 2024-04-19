@@ -68,10 +68,10 @@ class TeleOpNode:
         #Publishing Wheel Velocities
 
         omniVel_msg = Quaternion()
-        omniVel_msg.x = np.int(wheelVel[0])
-        omniVel_msg.y = np.int(wheelVel[1])
-        omniVel_msg.z = np.int(wheelVel[2])
-        omniVel_msg.w = np.int(wheelVel[3])
+        omniVel_msg.x = np.int(10*wheelVel[0])
+        omniVel_msg.y = np.int(10*wheelVel[1])
+        omniVel_msg.z = np.int(10*wheelVel[2])
+        omniVel_msg.w = np.int(10*wheelVel[3])
 
         self.publisher.publish(omniVel_msg)
 

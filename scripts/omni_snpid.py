@@ -1,4 +1,4 @@
-#!/usr/bin/env python3
+#!/usr/bin/env python
 import time
 import math
 import rospy 
@@ -48,12 +48,12 @@ class ControlNode:
 
         # Initializing SNPID learning rates
 
-        self.alpha_1 = 2
-        self.alpha_2 = 2
-        self.alpha_3 = 2
-        self.eta_1 = 0.001
-        self.eta_2 = 0.001
-        self.eta_3 = 0.001
+        self.alpha_1 = 0.2
+        self.alpha_2 = 0.2
+        self.alpha_3 = 0.2
+        self.eta_1 = 0.02
+        self.eta_2 = 0.02
+        self.eta_3 = 0.02
         self.beta = 0.01
 
     def control(self):      
@@ -76,12 +76,6 @@ class ControlNode:
         V_1 = self.W_1.T*X_1
         V_2 = self.W_2.T*X_2
         V_3 = self.W_3.T*X_3
-        
-        # Anti-WindUp
-
-        self.antiWindup(V_1,self.alpha_1,0)
-        self.antiWindup(V_2,self.alpha_2,1)
-        self.antiWindup(V_3,self.alpha_3,2)
 
         # Compute SNPIDs Outputs
 
@@ -95,9 +89,9 @@ class ControlNode:
 
         # Saturate Output (If Necessary)
 
-        U_1 = float(np.clip(U_1,-2,2))
-        U_2 = float(np.clip(U_2,-2,2))
-        U_3 = float(np.clip(U_3,-2,2))
+        U_1 = float(np.clip(U_1,-.2,.2))
+        U_2 = float(np.clip(U_2,-.2,.2))
+        U_3 = float(np.clip(U_3,-.2,.2))
 
         # Robot Inverse Kinematics (Control Velocities)
 
@@ -149,6 +143,25 @@ class ControlNode:
         self.P_2 = self.P_2 - K_2*H_2.T*self.P_2 + self.Q_2
         self.P_3 = self.P_3 - K_3*H_3.T*self.P_3 + self.Q_3
 
+        # Anti-WindUp
+
+        if abs(float(V_1)) > self.alpha_1:
+            prime_1 = 0
+        else:
+            prime_1 = self.e_p[0]
+        if abs(float(V_2)) > self.alpha_2:
+            prime_2 = 0
+        else:
+            prime_2 = self.e_p[1]
+        if abs(float(V_3)) > self.alpha_3:
+            prime_3 = 0
+        else:
+            prime_3 = self.e_p[2]
+
+        self.e_prime = np.array([prime_1,prime_2,prime_3])
+
+        print(self.e_prime)
+
     def callback_pose(self, data):
 
         # Simulated Pose
@@ -166,10 +179,10 @@ class ControlNode:
         wheelVel = self.u
         
         omniVel_msg = Quaternion()
-        omniVel_msg.x = np.int(wheelVel[0])
-        omniVel_msg.y = np.int(wheelVel[1])
-        omniVel_msg.z = np.int(wheelVel[2])
-        omniVel_msg.w = np.int(wheelVel[3])
+        omniVel_msg.x = np.int(10*wheelVel[0])
+        omniVel_msg.y = np.int(10*wheelVel[1])
+        omniVel_msg.z = np.int(10*wheelVel[2])
+        omniVel_msg.w = np.int(10*wheelVel[3])
 
         #Publishing Wheel Velocities        
         self.publisher.publish(omniVel_msg)
@@ -181,17 +194,6 @@ class ControlNode:
             self.i = (self.i + 1)
             if self.i == len(self.pd_list):
                 self.i = len(self.pd_list)-1
-
-    def antiWindup(self, V, alpha, j):
-        print(abs(np.float(V)))
-        if abs(np.float(V)) > alpha:
-            print("SAT")
-            self.e_prime[j] = 0
-        else:
-            self.e_prime[j] = self.e_p[j]
-            print("NOT SAT")
-
-        print(self.e_prime[j])
 
 if __name__ == '__main__':
     

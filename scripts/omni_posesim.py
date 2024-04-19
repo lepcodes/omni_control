@@ -39,7 +39,7 @@ class PoseSimNode:
                       [1,  1, -(L+l)],
                       [1, -1,  (L+l)]])
         T = np.linalg.pinv(T)
-        self.pp = np.dot(np.dot(R,T),self.u)*0.004
+        self.pp = np.dot(np.dot(R,T),self.u)*0.002
 
         # Integrator
 

@@ -15,7 +15,7 @@ void Velocidadmsg( const geometry_msgs::Quaternion& omni_vel){
   float wheel_2 = omni_vel.y;
   float wheel_3 = omni_vel.z;
   float wheel_4 = omni_vel.w;
-  float bound = 94;
+  float bound = 92;
   wheel_1 = map(wheel_1,-bound,bound,128,255);
   wheel_2 = map(wheel_2,-bound,bound,1  ,127);
   wheel_3 = map(wheel_3,-bound,bound,128,255);
