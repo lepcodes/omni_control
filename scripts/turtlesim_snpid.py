@@ -48,16 +48,16 @@ def control():
 
     alpha_1 = 0.5
     alpha_3 = 0.5
-    eta_1 = 0.01
-    eta_3 = 0.01
-    beta = 0.001
+    eta_1 = 0.005
+    eta_3 = 0.005
+    beta = 0.0001
     D = 0.5
     #Remove Later
     X_2 = np.zeros([3,1]); X_2 = np.asmatrix(X_2)
 
     while True:
         if flag == 1:
-            # Calculate Errors
+            # Error Computation
 
             e_p[0] = xd - xp
             e_p[2] = yd - yp
@@ -132,8 +132,8 @@ def control():
             # H_1 = X_1
             # H_3 = X_3
 
-            K_1 = P_1*H_1/(R_1 + H_1.T*P_1*H_1)
-            K_3 = P_3*H_3/(R_3 + H_3.T*P_3*H_3)
+            K_1 = P_1*H_1*np.linalg.inv(R_1 + H_1.T*P_1*H_1)
+            K_3 = P_3*H_3*np.linalg.inv(R_3 + H_3.T*P_3*H_3)
 
             W_1 = W_1 + eta_1*(K_1*e_p[0] - beta*float(e_p[0])*W_1)
             W_3 = W_3 + eta_3*(K_3*e_p[2] - beta*float(e_p[2])*W_3)
