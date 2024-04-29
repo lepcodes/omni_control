@@ -16,9 +16,15 @@ class TeleOpNode:
 
         self.p = np.array([0, 0, 0])
         self.pp = np.array([0, 0, 0])
-
-    def control(self):
         
+    def callback_vel(self, data):
+        
+        # Joystick Velocities
+
+        self.v_x = data.linear.x
+        self.v_y = data.linear.y
+        self.v_theta = data.angular.z
+
         # Robot Orientation
 
         #theta = self.p[2]
@@ -42,14 +48,6 @@ class TeleOpNode:
 
         self.publish_velocity(self.u)
 
-    def callback_vel(self, data):
-        
-        # Joystick Velocities
-
-        self.v_x = data.linear.x
-        self.v_y = data.linear.y
-        self.v_theta = data.angular.z
-
     def callback_pose(self, data):
         
         # Simulated Pose
@@ -68,10 +66,10 @@ class TeleOpNode:
         #Publishing Wheel Velocities
 
         omniVel_msg = Quaternion()
-        omniVel_msg.x = np.int(10*wheelVel[0])
-        omniVel_msg.y = np.int(10*wheelVel[1])
-        omniVel_msg.z = np.int(10*wheelVel[2])
-        omniVel_msg.w = np.int(10*wheelVel[3])
+        omniVel_msg.x = int(10*wheelVel[0])
+        omniVel_msg.y = int(10*wheelVel[1])
+        omniVel_msg.z = int(10*wheelVel[2])
+        omniVel_msg.w = int(10*wheelVel[3])
 
         self.publisher.publish(omniVel_msg)
 
@@ -81,6 +79,5 @@ if __name__ == '__main__':
 
     rate = rospy.Rate(10)
     while not rospy.is_shutdown():
-        teleop.control() 
         rate.sleep()
 
