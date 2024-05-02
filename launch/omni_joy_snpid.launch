@@ -1,8 +1,8 @@
 <launch>
   <!-- ROS Params -->
-  <arg name="joy_config" default="ps3-holonomic" />
+  <arg name="joy_config" default="f710-holonomic" />
   <arg name="joy_dev" default="/dev/input/js0" />
-  <arg name="joy_event" default="/dev/input/event6" /> <!-- check event using: udevadm monitor -->
+  <arg name="joy_event" default="/dev/input/event7" /> <!-- check event using: udevadm monitor -->
   <arg name="config_filepath" default="$(find omni_control)/config/$(arg joy_config).config.yaml" />
   <arg name="arduino_port" default="/dev/ttyACM0" />
 
