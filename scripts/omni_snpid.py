@@ -20,6 +20,9 @@ class ControlNode:
         self.i = 0
 
         self.joyIsWorking = 0
+        self.joyScaleX = 0.2
+        self.joyScaleY = 0.2
+        self.joyScaleTheta = 0.2 
         self.calibInProgress = 1
         self.transformer = tf.TransformerROS()
 
@@ -104,30 +107,26 @@ class ControlNode:
             U_2 = float(np.clip(U_2,-.2,.2))
             U_3 = float(np.clip(U_3,-.2,.2))
 
-            # Robot Inverse Kinematics (Control Velocities)
-
-            pi = np.pi
-            alpha = self.p[2] + pi/4
-            L = 0.425/2
-            l = 0.44/2
-            T = np.array([[np.sqrt(2)*np.sin(alpha), -np.sqrt(2)*np.cos(alpha), -(L+l)],
-                        [np.sqrt(2)*np.cos(alpha),  np.sqrt(2)*np.sin(alpha),  (L+l)],
-                        [np.sqrt(2)*np.cos(alpha),  np.sqrt(2)*np.sin(alpha), -(L+l)],
-                        [np.sqrt(2)*np.sin(alpha), -np.sqrt(2)*np.cos(alpha),  (L+l)]])
-            v = np.array([[U_1],[U_2],[U_3]])
-            self.u = np.dot(T, v)/0.05
+            # Control Velocities
+            
+            self.v_x = U_1 
+            self.v_y = U_2 
+            self.v_theta = U_3 
 
             # Publish Wheel Velocities
 
             self.publish_velocity()
 
             # Display SNPIDs Data
-
+            
+            v = [self.v_x,self.v_y,self.v_theta]
+            print(v)
             print(" ")
             print("{:<10}|{:<10}|{:<10}|{:<10}|{:<10}|{:<10}|{:<10}|{:<10}|{:<10}".format("Pose","Pose_d","Errors (x)","Errors (y)","Errors (t)","Gains (x)","Gains (y)","Gains (t)","Control"))
             for i in range(3):
-                print("{:<10.4f}|{:<10.4f}|{:<10.4f}|{:<10.4f}|{:<10.4f}|{:<10.4f}|{:<10.4f}|{:<10.4f}|{:<10.4f}".format(self.p[i],self.pd_list[self.i][i],X_1[i,0],X_2[i,0],X_3[i,0],self.W_1[i,0],self.W_2[i,0],self.W_3[i,0],v[i,0]))
+                print("{:<10.4f}|{:<10.4f}|{:<10.4f}|{:<10.4f}|{:<10.4f}|{:<10.4f}|{:<10.4f}|{:<10.4f}|{:<10.4f}".format(self.p[i],self.pd_list[self.i][i],X_1[i,0],X_2[i,0],X_3[i,0],self.W_1[i,0],self.W_2[i,0],self.W_3[i,0],v[i]))
             print(self.calFactor)
+            
             # EKF Training Algorithm
                 
             H_1 = self.alpha_1*(1-float(np.tanh(V_1)**2))*X_1
@@ -174,11 +173,10 @@ class ControlNode:
             print(self.e_prime)
 
         else:
-            print('JoyStick is Working!')
 
             # Display SNPIDs Data
 
-            print(" ")
+            print('JoyStick is Working!')
             print("{:<10}|{:<10}|{:<10}|{:<10}|{:<10}|{:<10}|{:<10}|{:<10}".format("Pose","Pose_d","Errors (x)","Errors (y)","Errors (tht)","Gains (x)","Gains (y)","Gains (tht)"))
             for i in range(3):
                 print("{:<10.4f}|{:<10.4f}|{:<10.4f}|{:<10.4f}|{:<10.4f}|{:<10.4f}|{:<10.4f}|{:<10.4f}".format(self.p[i],self.pd_list[self.i][i],X_1[i,0],X_2[i,0],X_3[i,0],self.W_1[i,0],self.W_2[i,0],self.W_3[i,0]))
@@ -218,21 +216,52 @@ class ControlNode:
         (_,_,yaw) = euler_from_quaternion(q)
 
     def callback_joy(self, data):
-
+        
         # Get Enable Button Status (11)
 
         self.joyIsWorking = data.buttons[4]
         
-    def publish_velocity(self):
-        wheelVel = self.u
+        if self.joyIsWorking == 1:
         
-        omniVel_msg = Quaternion()
-        omniVel_msg.x = int(10*wheelVel[0])
-        omniVel_msg.y = int(10*wheelVel[1])
-        omniVel_msg.z = int(10*wheelVel[2])
-        omniVel_msg.w = int(10*wheelVel[3])
+            # Joystick Velocities
 
-        #Publishing Wheel Velocities        
+            self.v_x = data.axes[1]*self.joyScaleX
+            self.v_y = data.axes[0]*self.joyScaleY
+            self.v_theta = data.axes[3]*self.joyScaleTheta
+            
+            # Publish Wheel Velocities
+        
+            self.publish_velocity()
+            
+    def publish_velocity(self):
+        # Robot Orientation
+
+        #theta = self.p[2]
+        theta = 0
+
+        # Robot Inverse Kinematics
+
+        pi = np.pi
+        alpha = theta + pi/4
+        L = 0.425/2
+        l = 0.44/2
+        T = np.array([[np.sqrt(2)*np.sin(alpha), -np.sqrt(2)*np.cos(alpha), -(L+l)],
+                      [np.sqrt(2)*np.cos(alpha),  np.sqrt(2)*np.sin(alpha),  (L+l)],
+                      [np.sqrt(2)*np.cos(alpha),  np.sqrt(2)*np.sin(alpha), -(L+l)],
+                      [np.sqrt(2)*np.sin(alpha), -np.sqrt(2)*np.cos(alpha),  (L+l)]])
+        
+        v = np.array([self.v_x, self.v_y, self.v_theta])
+        #print(v)
+        self.u = np.dot(T,v)/0.05
+        
+        #Publishing Wheel Velocities
+
+        omniVel_msg = Quaternion()
+        omniVel_msg.x = int(10*self.u[0])
+        omniVel_msg.y = int(10*self.u[1])
+        omniVel_msg.z = int(10*self.u[2])
+        omniVel_msg.w = int(10*self.u[3])
+
         self.publisher.publish(omniVel_msg)
 
     def update_target_position(self):

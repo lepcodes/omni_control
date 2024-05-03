@@ -2,14 +2,19 @@
 import rospy
 import numpy as np
 from tf.transformations import euler_from_quaternion
-from geometry_msgs.msg import Quaternion, Twist, PoseStamped
+from geometry_msgs.msg import Quaternion, PoseStamped
+from sensor_msgs.msg import Joy
 
 class TeleOpNode:
     def __init__(self):
         self.publisher = rospy.Publisher('omni_vel', Quaternion, queue_size=10)
-        self.subscriberJoy  = rospy.Subscriber('cmd_vel', Twist, self.callback_vel)
-        self.subscriberPose = rospy.Subscriber('posesim/pose', PoseStamped, self.callback_pose)
-
+        self.subscriberJoy  = rospy.Subscriber('joy', Joy, self.callback_joy)
+        self.subscriberPose = rospy.Subscriber('posestamped', PoseStamped, self.callback_pose)
+        
+        self.joyScaleX = 0.2
+        self.joyScaleY = 0.2
+        self.joyScaleTheta = 0.2 
+        
         self.v_x = 0
         self.v_y = 0
         self.v_theta = 0
@@ -17,14 +22,33 @@ class TeleOpNode:
         self.p = np.array([0, 0, 0])
         self.pp = np.array([0, 0, 0])
         
-    def callback_vel(self, data):
+    def callback_joy(self, data):
         
         # Joystick Velocities
 
-        self.v_x = data.linear.x
-        self.v_y = data.linear.y
-        self.v_theta = data.angular.z
+        self.v_x = data.axes[1]*self.joyScaleX
+        self.v_y = data.axes[0]*self.joyScaleY
+        self.v_theta = data.axes[3]*self.joyScaleTheta
+        
+        # Publish Wheel Velocities
+        
+        self.publish_velocity()
 
+    def callback_pose(self, data):
+        
+        # Simulated Pose
+
+        q = (data.pose.orientation.x,
+             data.pose.orientation.y,
+             data.pose.orientation.z,
+             data.pose.orientation.w)
+        
+        (roll,pitch,yaw) = euler_from_quaternion(q)
+        
+        self.p = np.array([data.pose.position.x,data.pose.position.y,yaw]) 
+
+    def publish_velocity(self):
+        
         # Robot Orientation
 
         #theta = self.p[2]
@@ -42,34 +66,16 @@ class TeleOpNode:
                       [np.sqrt(2)*np.sin(alpha), -np.sqrt(2)*np.cos(alpha),  (L+l)]])
         
         v = np.array([self.v_x, self.v_y, self.v_theta])
+        
         self.u = np.dot(T,v)/0.05
-
-        # Publish Wheel Velocities
-
-        self.publish_velocity(self.u)
-
-    def callback_pose(self, data):
-        
-        # Simulated Pose
-
-        q = (data.pose.orientation.x,
-             data.pose.orientation.y,
-             data.pose.orientation.z,
-             data.pose.orientation.w)
-        
-        (_,_,yaw) = euler_from_quaternion(q)
-
-        self.p = np.array([data.pose.position.x,data.pose.position.y,yaw]) 
-
-    def publish_velocity(self,wheelVel):
         
         #Publishing Wheel Velocities
 
         omniVel_msg = Quaternion()
-        omniVel_msg.x = int(10*wheelVel[0])
-        omniVel_msg.y = int(10*wheelVel[1])
-        omniVel_msg.z = int(10*wheelVel[2])
-        omniVel_msg.w = int(10*wheelVel[3])
+        omniVel_msg.x = int(10*self.u[0])
+        omniVel_msg.y = int(10*self.u[1])
+        omniVel_msg.z = int(10*self.u[2])
+        omniVel_msg.w = int(10*self.u[3])
 
         self.publisher.publish(omniVel_msg)
 

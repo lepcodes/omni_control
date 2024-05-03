@@ -3,24 +3,14 @@
   <arg name="joy_config" default="f710-holonomic" />
   <arg name="joy_dev" default="/dev/input/js0" />
   <arg name="joy_event" default="/dev/input/event7" /> <!-- check event using: udevadm monitor -->
-  <arg name="config_filepath" default="$(find omni_control)/config/$(arg joy_config).config.yaml" />
   <arg name="arduino_port" default="/dev/ttyACM0" />
 
   <!-- Joystic Node -->
   <node pkg="joy" type="joy_node" name="joy_node">
     <param name="dev" value="$(arg joy_dev)" />
     <param name="deadzone" value="0.05" />
-    <param name="autorepeat_rate" value="0" />
+    <param name="autorepeat_rate" value="10" />
     <param name="dev_ff" value="$(arg joy_event)" />
-  </node>
-
-  <!-- Joy to Twist Node -->
-  <node pkg="teleop_twist_joy" name="teleop_twist_joy" type="teleop_node">
-    <rosparam command="load" file="$(arg config_filepath)" />
-  </node>
-
-  <!-- Twist to OmniVel Node -->
-  <node pkg="omni_control" type="omni_teleop.py" name="omni_teleop" output="screen">
   </node>
 
   <!-- Single Neuron PID Control Node -->
