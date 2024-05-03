@@ -1,7 +1,7 @@
 #!/usr/bin/env python
 import rospy
 import numpy as np
-from tf.transformations import euler_from_quaternion
+from tf.transformations import euler_from_quaternion, euler_from_matrix
 from geometry_msgs.msg import Quaternion, PoseStamped
 from sensor_msgs.msg import Joy
 
@@ -14,7 +14,8 @@ class TeleOpNode:
         self.joyScaleX = 0.2
         self.joyScaleY = 0.2
         self.joyScaleTheta = 0.2 
-        
+        self.transformer = tf.TransformerROS()        
+
         self.v_x = 0
         self.v_y = 0
         self.v_theta = 0
@@ -44,15 +45,27 @@ class TeleOpNode:
              data.pose.orientation.w)
         
         (roll,pitch,yaw) = euler_from_quaternion(q)
+        print(roll,pitch,yaw)
+        # Transformation Matrix
+
+        gTc = self.transformer.fromTranslationRotation((data.pose.position.x,data.pose.position.y,data.pose.position.z),q)
+        cTo = np.array([[0,-1, 0, 1],
+                        [0, 0,-1, 1],
+                        [1, 0, 0, 1],
+                        [0, 0, 0, 1]]).astype(float)
+        gTo = np.dot(gTc,cTo)
+        gTo_rm = gTo[:3,:3]
+        (roll,pitch,yaw) = euler_from_matrix(gTo_rm,'sxyz')
         
-        self.p = np.array([data.pose.position.x,data.pose.position.y,yaw]) 
+        self.p = np.array([data.pose.position.x,data.pose.position.y,yaw])}
+        print(roll,pitch,yaw)
 
     def publish_velocity(self):
         
         # Robot Orientation
 
-        #theta = self.p[2]
-        theta = 0
+        theta = self.p[2]
+        #theta = 0
 
         # Robot Inverse Kinematics
 
