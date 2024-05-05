@@ -8,7 +8,7 @@ from geometry_msgs.msg import Quaternion, PoseStamped
 class PoseSimNode:
     def __init__(self):
         self.subscriber = rospy.Subscriber('omni_vel', Quaternion, self.callback_wheel_vel)
-        self.publisher = rospy.Publisher('posesim/pose', PoseStamped, queue_size=10)
+        self.publisher = rospy.Publisher('posesim', PoseStamped, queue_size=10)
 
         self.p = np.array([0, 0, 0])
         self.pp = np.array([0, 0, 0])
@@ -54,11 +54,11 @@ class PoseSimNode:
         
         poseMsg = PoseStamped()
 
-        poseMsg.pose.position.x = self.p[0]
-        poseMsg.pose.position.y = self.p[1]
-        poseMsg.pose.position.z = 0
+        poseMsg.pose.position.x = -self.p[1]
+        poseMsg.pose.position.y = 0
+        poseMsg.pose.position.z = self.p[0]
 
-        q = quaternion_from_euler(0,0,self.p[2])
+        q = quaternion_from_euler(0,-self.p[2],0)
         
         poseMsg.pose.orientation.x = q[0]
         poseMsg.pose.orientation.y = q[1]
