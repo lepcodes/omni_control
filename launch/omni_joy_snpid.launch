@@ -18,8 +18,8 @@
   </node>
 
   <!-- Pose Simulation Node -->
-  <node pkg="omni_control" type="omni_posesim.py" name="Pose_Sim" output="screen">
-  </node>
+  <!-- node pkg="omni_control" type="omni_posesim.py" name="Pose_Sim" output="screen">
+  </node-->
 
   <!-- rosserial Node -->
   <node pkg="rosserial_python" type="serial_node.py" name="serial_node" output="screen">
