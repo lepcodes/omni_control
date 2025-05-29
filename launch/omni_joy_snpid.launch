@@ -1,0 +1,28 @@
+<launch>
+  <!-- ROS Params -->
+  <arg name="joy_config" default="f710-holonomic" />
+  <arg name="joy_dev" default="/dev/input/js0" />
+  <arg name="joy_event" default="/dev/input/event7" /> <!-- check event using: udevadm monitor -->
+  <arg name="arduino_port" default="/dev/ttyACM0" />
+
+  <!-- Joystic Node -->
+  <node pkg="joy" type="joy_node" name="joy_node">
+    <param name="dev" value="$(arg joy_dev)" />
+    <param name="deadzone" value="0.05" />
+    <param name="autorepeat_rate" value="10" />
+    <param name="dev_ff" value="$(arg joy_event)" />
+  </node>
+
+  <!-- Single Neuron PID Control Node -->
+  <node pkg="omni_control" type="omni_snpid.py" name="omni_snpid" output="screen">
+  </node>
+
+  <!-- Pose Simulation Node -->
+  <!-- node pkg="omni_control" type="omni_posesim.py" name="Pose_Sim" output="screen">
+  </node-->
+
+  <!-- rosserial Node -->
+  <node pkg="rosserial_python" type="serial_node.py" name="serial_node" output="screen">
+    <param name="port" value="$(arg arduino_port)" />
+  </node>
+</launch>
